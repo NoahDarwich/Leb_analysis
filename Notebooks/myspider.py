@@ -5,7 +5,16 @@ from scrapy.downloadermiddlewares.useragent import UserAgentMiddleware
 
 import scrapy
 # from scrapy.linkextractors import LinkExtractor
+# import sys
+# sys.path.append('path/to/module')
+# import path
 
+API_KEY = '378d2b00-d774-4869-bf97-325ac3d1de22'
+
+def get_scrapeops_url(url):
+    payload = {'api_key': API_KEY, 'url': url}
+    proxy_url = 'https://proxy.scrapeops.io/v1/?' + urlencode(payload)
+    return proxy_url
 
 class MySpider(scrapy.Spider):
     name = "lebanon_akhbar"
@@ -18,6 +27,8 @@ class MySpider(scrapy.Spider):
         'path.to.RotateUserAgentMiddleware': 400,
         'scrapy.downloadermiddleware.retry.RetryMiddleware': None,
         'path.to.RotateIPMiddleware': 543,
+        'FEED_URI': 'output.csv',
+        'FEED_FORMAT': 'csv',
         }
     }
 
@@ -30,7 +41,7 @@ class MySpider(scrapy.Spider):
 
         selector = scrapy.Selector(response)
         links = selector.css('.class day').xpath('@href').extract()
-
+        print(links)
         for link in links:
 
             next_page_url = selector.css('a.next-page').xpath('@href').extract_first()
@@ -43,7 +54,7 @@ class Items(scrapy.Item):
     name = scrapy.Field()
 
 
-class RotateUserAgentMiddleware(scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware):
+class RotateUserAgentMiddleware(UserAgentMiddleware):
 
     def __init__(self, user_agent=''):
         self.user_agent = user_agent
@@ -52,7 +63,7 @@ class RotateUserAgentMiddleware(scrapy.downloadermiddlewares.httpproxy.HttpProxy
         ua = UserAgent()
         request.headers.setdefault('User-Agent', ua.random)
 
-class RotateIPMiddleware(scrapy.downloadermiddlewares.retry.RetryMiddleware):
+class RotateIPMiddleware(RetryMiddleware):
 
     def __init__(self, ip=''):
         self.ip = ip
