@@ -10,3 +10,4 @@ raw_data/
 *.gz
 *.bin
 *.json
+*.xlsx
